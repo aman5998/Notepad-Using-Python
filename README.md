@@ -47,11 +47,11 @@ The Notepad Application is a simple and efficient text editor developed with Pyt
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/notepad.git
+    git clone https://github.com/aman5998/Notepad-Using-Python.git
     ```
 2. Navigate to the project directory:
     ```sh
-    cd notepad
+    cd Notepad-Using-Python
     ```
 3. Install the required dependencies:
     ```sh
@@ -84,7 +84,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## 📬 Contact
 
-For any questions or suggestions, feel free to contact me at [your-email@example.com](mailto:amankrshawyt@gmail.com).
+For any questions or suggestions, feel free to contact me at [amankrshawyt@gmail.com](mailto:amankrshawyt@gmail.com).
 
 ---
 
