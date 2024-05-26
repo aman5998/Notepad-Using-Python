@@ -1,0 +1,3 @@
+tkinter
+pillow==8.1.0
+pyinstaller==4.2
