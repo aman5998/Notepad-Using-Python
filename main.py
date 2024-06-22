@@ -5,7 +5,10 @@ import tkinter.messagebox as tmsg
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter import font, colorchooser, filedialog, messagebox
 import os
+from spellchecker import SpellChecker
+import string
 
+spell = SpellChecker()
 
 def newFile(event=None):
     global file
@@ -321,6 +324,71 @@ def delete_word(event):
         TextArea.delete("insert-2c wordstart", "insert")
     return "break"
 
+def undo(event=None):
+    TextArea.edit_undo()
+
+def redo(event=None):
+    TextArea.edit_redo()
+
+
+def spell_check(event=None):
+    text_content = TextArea.get(1.0, END)
+    words = text_content.split()
+    misspelled = []
+
+    # Remove punctuation from each word and check spelling
+    for word in words:
+        clean_word = word.strip(string.punctuation)
+        if clean_word and clean_word not in spell:
+            misspelled.append(word)
+
+    # Remove previous misspelled tags
+    for tag in TextArea.tag_names():
+        if tag.startswith("misspelled"):
+            TextArea.tag_delete(tag)
+
+    # Add new misspelled tags
+    for word in misspelled:
+        start_idx = '1.0'
+        while True:
+            start_idx = TextArea.search(word, start_idx, nocase=True, stopindex=END)
+            if not start_idx:
+                break
+            end_idx = f"{start_idx}+{len(word)}c"
+            TextArea.tag_add(f"misspelled-{word}", start_idx, end_idx)
+            start_idx = end_idx
+
+    # Apply styling to misspelled tags
+    for tag in TextArea.tag_names():
+        if tag.startswith("misspelled"):
+            TextArea.tag_configure(tag, foreground="red", underline=1)
+            TextArea.tag_bind(tag, "<Button-3>", show_suggestions)
+
+# Function to show spelling suggestions in a context menu
+def show_suggestions(event):
+    menu = Menu(root, tearoff=0)
+    word_start = TextArea.index(f"@{event.x},{event.y} wordstart")
+    word_end = TextArea.index(f"@{event.x},{event.y} wordend")
+    word = TextArea.get(word_start, word_end)
+    clean_word = word.strip(string.punctuation)
+    suggestions = spell.candidates(clean_word)
+
+    if not suggestions:
+        menu.add_command(label="No Suggestions", state="disabled")
+    else:
+        for suggestion in suggestions:
+            menu.add_command(label=suggestion, command=lambda suggestion=suggestion: replace_word(word_start, word_end, suggestion))
+
+    menu.post(event.x_root, event.y_root)
+
+
+# Function to replace the misspelled word with the selected suggestion
+def replace_word(start, end, suggestion):
+    TextArea.delete(start, end)
+    TextArea.insert(start, suggestion)
+    spell_check()
+
+
 
 # Driver Code
 if __name__ == "__main__":
@@ -411,6 +479,8 @@ if __name__ == "__main__":
     root.bind_all("<Control-Shift-KeyPress-S>", saveasFile)
     root.bind_all("<Control-q>", quitApp)
     root.bind_all("<Alt-x>", clear)
+    root.bind_all("<Control-z>", undo)
+    root.bind_all("<Control-y>", redo)
 
     # Tool Bar Label
     tool_bars_label = Label(root)
@@ -516,5 +586,6 @@ if __name__ == "__main__":
 
     TextArea.bind("<Control-BackSpace>", delete_word)
 
+    TextArea.bind('<KeyRelease>', spell_check)
 
 root.mainloop()
